@@ -23,6 +23,16 @@ public class PlusApplicationContext {
     private ConcurrentHashMap<String, Object> singletonObjects = new ConcurrentHashMap<>();
 
 
+    /**
+     * 初始化plus-spring容器
+     * 1.扫描配置类对象，获取包扫描路径
+     * 2.获取包扫描路径下所有.class文件
+     * 3.获取标有@Component注解的.class文件
+     * 4.根据@Component注解和@Scope注解创建beanDefinition对象，并放入beanDefinitionMap中
+     * 5.实例化单例bean（完成依赖注入）
+     *
+     * @param configClass 配置类对象
+     */
     public PlusApplicationContext(Class configClass) {
         this.configClass = configClass;
         
@@ -109,6 +119,11 @@ public class PlusApplicationContext {
                     field.setAccessible(true);
                     field.set(instance, getBean(field.getName()));
                 }
+            }
+
+            // Aware回调
+            if (instance instanceof BeanNameAware) {
+                ((BeanNameAware)instance).setBeanName(beanName);
             }
 
             return instance;
