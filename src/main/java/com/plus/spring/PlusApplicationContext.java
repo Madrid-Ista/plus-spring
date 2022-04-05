@@ -121,12 +121,20 @@ public class PlusApplicationContext {
                 }
             }
 
-            // Aware回调
+            // Aware回调，回调时plus-spring会传入参数beanName
             if (instance instanceof BeanNameAware) {
                 ((BeanNameAware)instance).setBeanName(beanName);
             }
 
+            // 调用初始化方法，初始化是plus-spring只负责调用接口定义的方法
+            if (instance instanceof InitializingBean) {
+                ((InitializingBean)instance).afterPropertiesSet();
+            }
+
+            // 初始化后 AOP
+
             return instance;
+
         } catch (InstantiationException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {

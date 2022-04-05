@@ -4,7 +4,7 @@ package com.plus.spring;
  * @Author: Madridista
  * @Date: 2022/4/5
  */
-public interface BeanNameAware {
+public interface InitializingBean {
 
-    void setBeanName(String beanName);
+    void afterPropertiesSet();
 }
