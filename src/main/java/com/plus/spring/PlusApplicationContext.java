@@ -5,6 +5,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +22,8 @@ public class PlusApplicationContext {
     private ConcurrentHashMap<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
 
     private ConcurrentHashMap<String, Object> singletonObjects = new ConcurrentHashMap<>();
+
+    private ArrayList<BeanPostProcessor> beanPostProcessorList = new ArrayList<>();
 
 
     /**
@@ -65,6 +68,12 @@ public class PlusApplicationContext {
                             Class<?> clazz = classLoader.loadClass(className);
 
                             if (clazz.isAnnotationPresent(Component.class)) {
+
+                                if (BeanPostProcessor.class.isAssignableFrom(clazz)) {
+                                    BeanPostProcessor instance = (BeanPostProcessor) clazz.newInstance();
+                                    beanPostProcessorList.add(instance);
+                                }
+
                                 // BeanDefinition
                                 BeanDefinition beanDefinition = new BeanDefinition();
                                 beanDefinition.setType(clazz);
@@ -87,6 +96,10 @@ public class PlusApplicationContext {
 
                             }
                         } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IllegalAccessException e) {
+                            e.printStackTrace();
+                        } catch (InstantiationException e) {
                             e.printStackTrace();
                         }
 
@@ -126,12 +139,19 @@ public class PlusApplicationContext {
                 ((BeanNameAware)instance).setBeanName(beanName);
             }
 
-            // 调用初始化方法，初始化是plus-spring只负责调用接口定义的方法
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                instance = beanPostProcessor.postProcessBeforeInitialization(beanName, instance);
+            }
+
+            // 初始化，初始化是plus-spring只负责调用接口定义的方法
             if (instance instanceof InitializingBean) {
                 ((InitializingBean)instance).afterPropertiesSet();
             }
 
-            // 初始化后 AOP
+            for (BeanPostProcessor beanPostProcessor : beanPostProcessorList) {
+                instance = beanPostProcessor.postProcessAfterInitialization(beanName, instance);
+            }
+
 
             return instance;
 
