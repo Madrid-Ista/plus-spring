@@ -19,10 +19,19 @@ public class PlusApplicationContext {
 
     private static final String DEFAULT_SCOPE = "singleton";
 
+    /**
+     * bean对象定义map，线程安全
+     */
     private ConcurrentHashMap<String, BeanDefinition> beanDefinitionMap = new ConcurrentHashMap<>();
 
+    /**
+     * 单例池，线程安全
+     */
     private ConcurrentHashMap<String, Object> singletonObjects = new ConcurrentHashMap<>();
 
+    /**
+     * beanpostprocessor列表
+     */
     private ArrayList<BeanPostProcessor> beanPostProcessorList = new ArrayList<>();
 
 
